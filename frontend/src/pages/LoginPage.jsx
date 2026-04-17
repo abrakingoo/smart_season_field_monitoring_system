@@ -1,20 +1,25 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { USERS } from '../data/users'
 
 export default function LoginPage() {
-  const [form, setForm] = useState({ username: '', password: '' })
-  const navigate = useNavigate()
+  const [form, setForm]   = useState({ username: '', password: '' })
+  const [error, setError] = useState('')
+  const navigate          = useNavigate()
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    localStorage.setItem('auth', 'true')
-    localStorage.setItem('username', form.username)
-    navigate('/dashboard')
+    const user = USERS.find((u) => u.username === form.username && u.password === form.password)
+    if (!user) { setError('Invalid username or password'); return }
+    localStorage.setItem('auth',     'true')
+    localStorage.setItem('username', user.username)
+    localStorage.setItem('role',     user.role)
+    localStorage.setItem('userId',   user.id)
+    navigate(user.role === 'admin' ? '/admin' : '/dashboard')
   }
 
   return (
     <div className="min-h-screen flex">
-      {/* Left brand panel */}
       <div className="hidden lg:flex flex-col justify-between w-1/2 bg-[#3d6b35] p-12">
         <div className="flex items-center gap-3">
           <img src="/shamba.svg" alt="logo" className="w-9 h-9" />
@@ -31,7 +36,6 @@ export default function LoginPage() {
         <p className="text-white/30 text-xs">© {new Date().getFullYear()} ShambaRecords</p>
       </div>
 
-      {/* Right form panel */}
       <div className="flex-1 flex items-center justify-center bg-[#f4f6f3] px-6">
         <div className="w-full max-w-sm">
           <div className="flex items-center gap-2 mb-8 lg:hidden">
@@ -46,10 +50,8 @@ export default function LoginPage() {
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-gray-600">Username</label>
               <input
-                type="text"
-                required
-                value={form.username}
-                onChange={(e) => setForm({ ...form, username: e.target.value })}
+                type="text" required value={form.username}
+                onChange={(e) => { setForm({ ...form, username: e.target.value }); setError('') }}
                 className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3d6b35]/40 focus:border-[#3d6b35] transition"
                 placeholder="Enter your username"
               />
@@ -57,14 +59,13 @@ export default function LoginPage() {
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-gray-600">Password</label>
               <input
-                type="password"
-                required
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                type="password" required value={form.password}
+                onChange={(e) => { setForm({ ...form, password: e.target.value }); setError('') }}
                 className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3d6b35]/40 focus:border-[#3d6b35] transition"
                 placeholder="Enter your password"
               />
             </div>
+            {error && <p className="text-xs text-red-500">{error}</p>}
             <button
               type="submit"
               className="mt-2 bg-[#3d6b35] text-white rounded-xl py-3 text-sm font-semibold hover:bg-[#2f5429] active:scale-[0.98] transition cursor-pointer shadow-sm shadow-[#3d6b35]/30"
