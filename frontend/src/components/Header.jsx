@@ -4,7 +4,7 @@ export default function Header({ showLogout = true }) {
   const navigate = useNavigate()
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between px-6 py-3 bg-[#3d6b35]/95 backdrop-blur border-b border-white/10 shadow-sm">
+    <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 py-3 bg-[#3d6b35]/95 backdrop-blur border-b border-white/10 shadow-sm">
       <div className="flex items-center gap-3">
         <img src="/shamba.svg" alt="ShambaRecords logo" className="w-8 h-8" />
         <span className="text-white font-bold text-base tracking-wide">ShambaRecords</span>
