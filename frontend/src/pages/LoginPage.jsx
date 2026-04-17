@@ -1,21 +1,33 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { USERS } from '../data/users'
+import api from '../services/api'
+import { useApp } from '../context/AppContext'
 
 export default function LoginPage() {
-  const [form, setForm]   = useState({ username: '', password: '' })
-  const [error, setError] = useState('')
-  const navigate          = useNavigate()
+  const [form, setForm]       = useState({ username: '', password: '' })
+  const [error, setError]     = useState('')
+  const [loading, setLoading] = useState(false)
+  const navigate              = useNavigate()
+  const { triggerAuth }       = useApp()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const user = USERS.find((u) => u.username === form.username && u.password === form.password)
-    if (!user) { setError('Invalid username or password'); return }
-    localStorage.setItem('auth',     'true')
-    localStorage.setItem('username', user.username)
-    localStorage.setItem('role',     user.role)
-    localStorage.setItem('userId',   user.id)
-    navigate(user.role === 'admin' ? '/admin' : '/dashboard')
+    setLoading(true)
+    setError('')
+    try {
+      const { data } = await api.post('/auth/login', form)
+      localStorage.setItem('token',    data.token)
+      localStorage.setItem('auth',     'true')
+      localStorage.setItem('username', data.user.username)
+      localStorage.setItem('role',     data.user.role)
+      localStorage.setItem('userId',   data.user.id)
+      triggerAuth()
+      navigate(data.user.role === 'admin' ? '/admin' : '/dashboard')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -68,9 +80,10 @@ export default function LoginPage() {
             {error && <p className="text-xs text-red-500">{error}</p>}
             <button
               type="submit"
-              className="mt-2 bg-[#3d6b35] text-white rounded-xl py-3 text-sm font-semibold hover:bg-[#2f5429] active:scale-[0.98] transition cursor-pointer shadow-sm shadow-[#3d6b35]/30"
+              disabled={loading}
+              className="mt-2 bg-[#3d6b35] text-white rounded-xl py-3 text-sm font-semibold hover:bg-[#2f5429] active:scale-[0.98] transition cursor-pointer shadow-sm shadow-[#3d6b35]/30 disabled:opacity-60"
             >
-              Sign In
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
         </div>
