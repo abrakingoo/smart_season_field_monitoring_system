@@ -18,7 +18,7 @@ export default function Header({ showLogout = true }) {
             <span className="text-sm text-white/80 hidden sm:block">{localStorage.getItem('username') || 'Agent'}</span>
           </div>
           <button
-            onClick={() => { localStorage.removeItem('auth'); localStorage.removeItem('username'); navigate('/') }}
+            onClick={() => { localStorage.removeItem('auth'); localStorage.removeItem('username'); localStorage.removeItem('role'); localStorage.removeItem('userId'); navigate('/') }}
             className="flex items-center gap-1.5 text-xs text-white/80 hover:text-white border border-white/20 hover:border-white/40 px-3 py-1.5 rounded-lg transition cursor-pointer"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
