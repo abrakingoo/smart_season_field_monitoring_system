@@ -3,10 +3,13 @@ const auth   = require('../middleware/auth')
 const role   = require('../middleware/role')
 const ctrl   = require('../controllers/userController')
 
-router.use(auth, role('admin'))
+// Any authenticated user can change their own password
+router.patch('/me/password', auth, ctrl.changePassword)
 
-router.get('/',         ctrl.getUsers)
-router.get('/agents',   ctrl.getAgents)
-router.post('/',        ctrl.createUser)
+// Admin only
+router.use(auth, role('admin'))
+router.get('/',       ctrl.getUsers)
+router.get('/agents', ctrl.getAgents)
+router.post('/',      ctrl.createUser)
 
 module.exports = router
