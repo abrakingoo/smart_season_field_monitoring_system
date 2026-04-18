@@ -1,10 +1,10 @@
 const bcrypt = require('bcryptjs')
 
 const users = [
-  { id: 'u1', username: 'admin', password: bcrypt.hashSync('admin123', 10), role: 'admin' },
-  { id: 'u2', username: 'john',  password: bcrypt.hashSync('pass123',  10), role: 'agent' },
-  { id: 'u3', username: 'mary',  password: bcrypt.hashSync('pass123',  10), role: 'agent' },
-  { id: 'u4', username: 'james', password: bcrypt.hashSync('pass123',  10), role: 'agent' },
+  { id: 'u1', username: 'admin', password: '$2b$10$tID1iJMbLgIPB.yG3Fzxj.DcUe1jF8KR/fALQJr5RXJJ/dkPyP2Ly', role: 'admin' },
+  { id: 'u2', username: 'john',  password: '$2b$10$O82.ZDE.HGb7IY0BPHW5HuzoYCdQw8Yqp5/uznTX8GOr9n8QQdVWO', role: 'agent' },
+  { id: 'u3', username: 'mary',  password: '$2b$10$O82.ZDE.HGb7IY0BPHW5HuzoYCdQw8Yqp5/uznTX8GOr9n8QQdVWO', role: 'agent' },
+  { id: 'u4', username: 'james', password: '$2b$10$O82.ZDE.HGb7IY0BPHW5HuzoYCdQw8Yqp5/uznTX8GOr9n8QQdVWO', role: 'agent' },
 ]
 
 const findByUsername = (username) => users.find((u) => u.username === username)
