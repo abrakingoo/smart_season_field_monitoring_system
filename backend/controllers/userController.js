@@ -1,12 +1,24 @@
 const users = require('../models/userModel')
 
-const getUsers  = (req, res) => res.json(users.getAll())
-const getAgents = (req, res) => res.json(users.getAgents())
+const getUsers  = async (req, res) => {
+  try { res.json(await users.getAll()) }
+  catch (err) { res.status(500).json({ message: err.message }) }
+}
 
-const createUser = (req, res) => {
-  const { username, password, role } = req.body
-  if (!username || !password) return res.status(400).json({ message: 'username and password required' })
-  res.status(201).json(users.create({ username, password, role }))
+const getAgents = async (req, res) => {
+  try { res.json(await users.getAgents()) }
+  catch (err) { res.status(500).json({ message: err.message }) }
+}
+
+const createUser = async (req, res) => {
+  try {
+    const { username, password, role } = req.body
+    if (!username || !password)
+      return res.status(400).json({ message: 'username and password required' })
+    res.status(201).json(await users.create({ username, password, role }))
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
 }
 
 module.exports = { getUsers, getAgents, createUser }

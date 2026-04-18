@@ -1,69 +1,102 @@
-const STAGES = ['Planted', 'Growing', 'Ready', 'Harvested']
+const pool = require('../config/db')
+
 const RISK_KEYWORDS = ['pest', 'disease', 'drought', 'flood', 'damage', 'wilt', 'rot']
-const STALE_DAYS = 7
+const STALE_DAYS    = 7
 
 function computeStatus(field) {
   if (field.stage === 'Harvested') return 'Completed'
-  const stale = (Date.now() - new Date(field.updatedAt)) / 86400000 > STALE_DAYS
-  const hasRisk = field.notes.some((n) => RISK_KEYWORDS.some((kw) => n.text.toLowerCase().includes(kw)))
+  const stale   = (Date.now() - new Date(field.updated_at)) / 86400000 > STALE_DAYS
+  const hasRisk = (field.notes || []).some((n) =>
+    RISK_KEYWORDS.some((kw) => n.text.toLowerCase().includes(kw))
+  )
   return stale || hasRisk ? 'At Risk' : 'Active'
 }
 
-let fields = [
-  { id: 1, name: 'Field A', crop: 'Maize',   plantingDate: '2025-01-10', stage: 'Growing',  assignedTo: 'u2', stageHistory: [{ stage: 'Planted', date: '2025-01-10T00:00:00.000Z' }, { stage: 'Growing', date: '2025-02-01T00:00:00.000Z' }], notes: [], updatedAt: new Date().toISOString() },
-  { id: 2, name: 'Field B', crop: 'Wheat',   plantingDate: '2025-02-14', stage: 'Planted',  assignedTo: 'u3', stageHistory: [{ stage: 'Planted', date: '2025-02-14T00:00:00.000Z' }], notes: [], updatedAt: new Date().toISOString() },
-  { id: 3, name: 'Field C', crop: 'Beans',   plantingDate: '2024-12-01', stage: 'Ready',    assignedTo: 'u2', stageHistory: [{ stage: 'Planted', date: '2024-12-01T00:00:00.000Z' }, { stage: 'Growing', date: '2025-01-15T00:00:00.000Z' }, { stage: 'Ready', date: '2025-03-10T00:00:00.000Z' }], notes: [], updatedAt: new Date(Date.now() - 9 * 86400000).toISOString() },
-  { id: 4, name: 'Field D', crop: 'Sorghum', plantingDate: '2025-03-01', stage: 'Planted',  assignedTo: 'u4', stageHistory: [{ stage: 'Planted', date: '2025-03-01T00:00:00.000Z' }], notes: [], updatedAt: new Date().toISOString() },
-]
+async function fetchFullField(id) {
+  const { rows: fields } = await pool.query(
+    `SELECT id, name, crop, planting_date AS "plantingDate", stage, assigned_to AS "assignedTo", updated_at AS "updatedAt"
+     FROM fields WHERE id = $1`, [id]
+  )
+  if (!fields.length) return null
+  const field = fields[0]
 
-const withStatus  = (f)  => ({ ...f, status: computeStatus(f) })
-const getAll      = ()   => fields.map(withStatus)
-const getById     = (id) => { const f = fields.find((f) => f.id === Number(id)); return f ? withStatus(f) : null }
-const getByAgent  = (uid)=> fields.filter((f) => f.assignedTo === uid).map(withStatus)
+  const { rows: history } = await pool.query(
+    `SELECT stage, date FROM stage_history WHERE field_id = $1 ORDER BY date ASC`, [id]
+  )
+  const { rows: notes } = await pool.query(
+    `SELECT text, created_at AS "createdAt" FROM field_notes WHERE field_id = $1 ORDER BY created_at ASC`, [id]
+  )
 
-const create = ({ name, crop, plantingDate, assignedTo }) => {
-  const field = {
-    id: Date.now(), name, crop, plantingDate, assignedTo: assignedTo || null,
-    stage: 'Planted',
-    stageHistory: [{ stage: 'Planted', date: new Date().toISOString() }],
-    notes: [],
-    updatedAt: new Date().toISOString(),
-  }
-  fields.push(field)
-  return withStatus(field)
+  return { ...field, stageHistory: history, notes, status: computeStatus({ ...field, notes }) }
 }
 
-const update = (id, data) => {
-  const idx = fields.findIndex((f) => f.id === Number(id))
-  if (idx === -1) return null
-  fields[idx] = { ...fields[idx], ...data, updatedAt: new Date().toISOString() }
-  return withStatus(fields[idx])
+const getAll = async () => {
+  const { rows } = await pool.query(
+    `SELECT id FROM fields ORDER BY id`
+  )
+  return Promise.all(rows.map((r) => fetchFullField(r.id)))
 }
 
-const updateStage = (id, stage) => {
+const getById = async (id) => fetchFullField(id)
+
+const getByAgent = async (userId) => {
+  const { rows } = await pool.query(
+    `SELECT id FROM fields WHERE assigned_to = $1 ORDER BY id`, [userId]
+  )
+  return Promise.all(rows.map((r) => fetchFullField(r.id)))
+}
+
+const create = async ({ name, crop, plantingDate, assignedTo }) => {
+  const { rows } = await pool.query(
+    `INSERT INTO fields (name, crop, planting_date, stage, assigned_to)
+     VALUES ($1,$2,$3,'Planted',$4) RETURNING id`,
+    [name, crop, plantingDate, assignedTo || null]
+  )
+  const id = rows[0].id
+  await pool.query(
+    `INSERT INTO stage_history (field_id, stage) VALUES ($1, 'Planted')`, [id]
+  )
+  return fetchFullField(id)
+}
+
+const update = async (id, { name, crop, plantingDate, assignedTo }) => {
+  await pool.query(
+    `UPDATE fields SET name=$1, crop=$2, planting_date=$3, assigned_to=$4, updated_at=NOW() WHERE id=$5`,
+    [name, crop, plantingDate, assignedTo || null, id]
+  )
+  return fetchFullField(id)
+}
+
+const updateStage = async (id, stage) => {
+  const STAGES = ['Planted', 'Growing', 'Ready', 'Harvested']
   if (!STAGES.includes(stage)) return null
-  const idx = fields.findIndex((f) => f.id === Number(id))
-  if (idx === -1) return null
-  fields[idx] = {
-    ...fields[idx], stage,
-    stageHistory: [...fields[idx].stageHistory, { stage, date: new Date().toISOString() }],
-    updatedAt: new Date().toISOString(),
-  }
-  return withStatus(fields[idx])
+  await pool.query(
+    `UPDATE fields SET stage=$1, updated_at=NOW() WHERE id=$2`, [stage, id]
+  )
+  await pool.query(
+    `INSERT INTO stage_history (field_id, stage) VALUES ($1,$2)`, [id, stage]
+  )
+  return fetchFullField(id)
 }
 
-const addNote = (id, text) => {
-  const idx = fields.findIndex((f) => f.id === Number(id))
-  if (idx === -1) return null
-  fields[idx] = {
-    ...fields[idx],
-    notes: [...fields[idx].notes, { text, createdAt: new Date().toISOString() }],
-    updatedAt: new Date().toISOString(),
-  }
-  return withStatus(fields[idx])
+const addNote = async (id, text) => {
+  await pool.query(
+    `INSERT INTO field_notes (field_id, text) VALUES ($1,$2)`, [id, text]
+  )
+  await pool.query(`UPDATE fields SET updated_at=NOW() WHERE id=$1`, [id])
+  return fetchFullField(id)
 }
 
-const assign = (id, agentId) => update(id, { assignedTo: agentId })
-const remove  = (id) => { const exists = getById(id); fields = fields.filter((f) => f.id !== Number(id)); return !!exists }
+const assign = async (id, agentId) => {
+  await pool.query(
+    `UPDATE fields SET assigned_to=$1, updated_at=NOW() WHERE id=$2`, [agentId || null, id]
+  )
+  return fetchFullField(id)
+}
+
+const remove = async (id) => {
+  const { rowCount } = await pool.query('DELETE FROM fields WHERE id=$1', [id])
+  return rowCount > 0
+}
 
 module.exports = { getAll, getById, getByAgent, create, update, updateStage, addNote, assign, remove }
