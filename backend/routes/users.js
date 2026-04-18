@@ -11,5 +11,6 @@ router.use(auth, role('admin'))
 router.get('/',       ctrl.getUsers)
 router.get('/agents', ctrl.getAgents)
 router.post('/',      ctrl.createUser)
+router.patch('/:id',  ctrl.updateAgent)
 
 module.exports = router

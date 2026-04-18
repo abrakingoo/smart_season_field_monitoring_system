@@ -13,7 +13,7 @@ const STATUS_CONFIG = {
 }
 
 export default function AdminDashboard() {
-  const { fields, agents, createField, updateField, deleteField, assignField, createAgent } = useApp()
+  const { fields, agents, createField, updateField, deleteField, assignField, createAgent, updateAgent } = useApp()
   const [section, setSection]               = useState('overview')
   const [formTarget, setFormTarget]         = useState(null)
   const [viewing, setViewing]               = useState(null)
@@ -212,6 +212,7 @@ export default function AdminDashboard() {
         <AgentDetailModal
           agent={selectedAgent}
           fields={fields}
+          onUpdate={updateAgent}
           onClose={() => setSelectedAgent(null)}
         />
       )}
