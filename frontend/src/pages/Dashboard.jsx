@@ -26,11 +26,13 @@ const STATS = [
 
 export default function Dashboard() {
   const { fields, updateStage, addNote } = useApp()
-  const [viewing, setViewing] = useState(null)
-  const [editing, setEditing] = useState(null)
+  const [viewing, setViewing]   = useState(null)
+  const [editing, setEditing]   = useState(null)
+  const [filter, setFilter]     = useState('total')
 
-  const counts  = fields.reduce((acc, f) => { acc[f.status] = (acc[f.status] || 0) + 1; return acc }, {})
+  const counts    = fields.reduce((acc, f) => { acc[f.status] = (acc[f.status] || 0) + 1; return acc }, {})
   const liveField = (f) => fields.find((x) => x.id === f.id) || f
+  const filtered  = filter === 'total' ? fields : fields.filter((f) => f.status === filter)
 
   return (
     <Layout>
@@ -42,22 +44,33 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {STATS.map(({ key, label, icon, style }) => (
-            <div key={key} className={`rounded-2xl border px-3 sm:px-5 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 ${style}`}>
+            <button
+              key={key}
+              onClick={() => setFilter(filter === key ? 'total' : key)}
+              className={`rounded-2xl border px-3 sm:px-5 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 text-left transition cursor-pointer ${style} ${
+                filter === key ? 'ring-2 ring-offset-1 ring-current shadow-md scale-[1.02]' : 'opacity-80 hover:opacity-100 hover:shadow-sm'
+              }`}
+            >
               <span className="opacity-60 hidden sm:block">{icon}</span>
               <div>
                 <p className="text-xl sm:text-2xl font-bold leading-none">{key === 'total' ? fields.length : counts[key] || 0}</p>
                 <p className="text-[11px] sm:text-xs mt-0.5 opacity-70">{label}</p>
               </div>
-            </div>
+            </button>
           ))}
         </div>
 
         <div>
-          <h3 className="text-xs sm:text-sm font-semibold text-gray-500 mb-3 sm:mb-4">All Fields ({fields.length})</h3>
+          <h3 className="text-xs sm:text-sm font-semibold text-gray-500 mb-3 sm:mb-4">
+            {filter === 'total' ? `All Fields (${fields.length})` : `${filter} (${filtered.length})`}
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {fields.map((field) => (
+            {filtered.map((field) => (
               <FieldCard key={field.id} field={field} onView={setViewing} onEdit={setEditing} />
             ))}
+            {filtered.length === 0 && (
+              <p className="text-sm col-span-full text-center py-10" style={{ color: '#8a8278' }}>No fields match this filter.</p>
+            )}
           </div>
         </div>
       </div>
