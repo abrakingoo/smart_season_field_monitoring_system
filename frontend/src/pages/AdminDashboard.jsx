@@ -14,7 +14,12 @@ const STATUS_CONFIG = {
 
 export default function AdminDashboard() {
   const { fields, agents, createField, updateField, deleteField, assignField, createAgent, updateAgent } = useApp()
-  const [section, setSection]               = useState('overview')
+  const [section, setSection]               = useState(() => sessionStorage.getItem('adminSection') || 'overview')
+
+  const handleSectionChange = (s) => {
+    sessionStorage.setItem('adminSection', s)
+    setSection(s)
+  }
   const [formTarget, setFormTarget]         = useState(null)
   const [viewing, setViewing]               = useState(null)
   const [confirmDelete, setConfirmDelete]   = useState(null)
@@ -41,7 +46,7 @@ export default function AdminDashboard() {
   const filteredFields = statusFilter ? fields.filter((f) => f.status === statusFilter) : fields
 
   return (
-    <AdminLayout activeSection={section} onSectionChange={setSection}>
+    <AdminLayout activeSection={section} onSectionChange={handleSectionChange}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col gap-6 sm:gap-8">
 
         {/* Page title + action buttons */}

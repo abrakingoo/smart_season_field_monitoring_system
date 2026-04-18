@@ -31,7 +31,12 @@ const STATS = [
 
 export default function Dashboard() {
   const { fields, updateStage, addNote } = useApp()
-  const [section, setSection]   = useState('fields')
+  const [section, setSection]   = useState(() => sessionStorage.getItem('agentSection') || 'fields')
+
+  const handleSectionChange = (s) => {
+    sessionStorage.setItem('agentSection', s)
+    setSection(s)
+  }
   const [viewing, setViewing]   = useState(null)
   const [editing, setEditing]   = useState(null)
   const [filter, setFilter]     = useState('total')
@@ -68,7 +73,7 @@ export default function Dashboard() {
   const inputClass = 'w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition'
 
   return (
-    <AgentLayout activeSection={section} onSectionChange={setSection} fieldCounts={fieldCounts}>
+    <AgentLayout activeSection={section} onSectionChange={handleSectionChange} fieldCounts={fieldCounts}>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col gap-6 sm:gap-8">
 
         {/* Fields section */}
