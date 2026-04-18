@@ -56,6 +56,11 @@ export function AppProvider({ children }) {
     setFields((prev) => prev.map((f) => f.id === id ? field : f))
   }
 
+  const createAgent = async ({ username, password }) => {
+    const { data: agent } = await api.post('/users', { username, password, role: 'agent' })
+    setAgents((prev) => [...prev, agent])
+  }
+
   const updateStage = async (id, stage) => {
     const { data: field } = await api.patch(`/fields/${id}/stage`, { stage })
     setFields((prev) => prev.map((f) => f.id === id ? field : f))
@@ -67,7 +72,7 @@ export function AppProvider({ children }) {
   }
 
   return (
-    <AppContext.Provider value={{ fields, agents, loading, createField, updateField, deleteField, assignField, updateStage, addNote, refetch: fetchFields, triggerAuth }}>
+    <AppContext.Provider value={{ fields, agents, loading, createField, updateField, deleteField, assignField, updateStage, addNote, createAgent, refetch: fetchFields, triggerAuth }}>
       {children}
     </AppContext.Provider>
   )

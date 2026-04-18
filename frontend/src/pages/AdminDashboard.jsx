@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Layout from '../components/Layout'
 import FieldFormModal from '../components/FieldFormModal'
 import FieldDetailModal from '../components/FieldDetailModal'
+import AgentFormModal from '../components/AgentFormModal'
 import { useApp } from '../context/AppContext'
 
 const STATUS_CONFIG = {
@@ -11,10 +12,11 @@ const STATUS_CONFIG = {
 }
 
 export default function AdminDashboard() {
-  const { fields, agents, createField, updateField, deleteField, assignField } = useApp()
+  const { fields, agents, createField, updateField, deleteField, assignField, createAgent } = useApp()
   const [formTarget, setFormTarget] = useState(null)
   const [viewing, setViewing]       = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null)
+  const [showAgentForm, setShowAgentForm] = useState(false)
 
   const counts = fields.reduce((acc, f) => { acc[f.status] = (acc[f.status] || 0) + 1; return acc }, {})
   const agentName = (id) => agents.find((a) => a.id === id)?.username ?? 'Unassigned'
@@ -144,7 +146,16 @@ export default function AdminDashboard() {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-3">Agent Overview</p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Agent Overview</p>
+            <button
+              onClick={() => setShowAgentForm(true)}
+              className="flex items-center gap-1.5 text-xs font-semibold text-[#3d6b35] border border-[#3d6b35] px-3 py-1.5 rounded-xl hover:bg-[#3d6b35] hover:text-white transition cursor-pointer"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Agent
+            </button>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {agents.map((agent) => {
               const agentFields = fields.filter((f) => f.assignedTo === agent.id)
@@ -169,6 +180,13 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {showAgentForm && (
+        <AgentFormModal
+          onSave={createAgent}
+          onClose={() => setShowAgentForm(false)}
+        />
+      )}
 
       {/* Field form modal */}
       {formTarget && (
