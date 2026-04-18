@@ -176,34 +176,100 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Agents */}
+        {/* Agents — cards on overview, table on agents section */}
         {(section === 'overview' || section === 'agents') && (
           <div>
-            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-3">Agent Overview</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {agents.map((agent) => {
-                const agentFields = fields.filter((f) => f.assignedTo === agent.id)
-                const atRisk = agentFields.filter((f) => f.status === 'At Risk').length
-                return (
-                  <div key={agent.id}
-                    onClick={() => setSelectedAgent(agent)}
-                    className="bg-white rounded-2xl border border-gray-100 px-4 sm:px-5 py-3 sm:py-4 flex items-center gap-3 sm:gap-4 cursor-pointer hover:border-[#3d6b35] hover:shadow-sm transition">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#3d6b35]/10 flex items-center justify-center text-[#3d6b35] font-bold text-sm shrink-0">
-                      {agent.username[0].toUpperCase()}
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-3">Agent Overview ({agents.length})</p>
+
+            {section === 'overview' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {agents.map((agent) => {
+                  const agentFields = fields.filter((f) => f.assignedTo === agent.id)
+                  const atRisk = agentFields.filter((f) => f.status === 'At Risk').length
+                  return (
+                    <div key={agent.id}
+                      onClick={() => setSelectedAgent(agent)}
+                      className="bg-white rounded-2xl border border-gray-100 px-4 sm:px-5 py-3 sm:py-4 flex items-center gap-3 sm:gap-4 cursor-pointer hover:border-[#3d6b35] hover:shadow-sm transition">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#3d6b35]/10 flex items-center justify-center text-[#3d6b35] font-bold text-sm shrink-0">
+                        {agent.username[0].toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-700 text-sm truncate">{agent.username}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{agentFields.length} field{agentFields.length !== 1 ? 's' : ''} assigned</p>
+                      </div>
+                      {atRisk > 0 && (
+                        <span className="text-xs bg-amber-50 text-amber-600 ring-1 ring-amber-200 px-2 py-1 rounded-full font-medium shrink-0">
+                          {atRisk} at risk
+                        </span>
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-700 text-sm truncate">{agent.username}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{agentFields.length} field{agentFields.length !== 1 ? 's' : ''} assigned</p>
-                    </div>
-                    {atRisk > 0 && (
-                      <span className="text-xs bg-amber-50 text-amber-600 ring-1 ring-amber-200 px-2 py-1 rounded-full font-medium shrink-0">
-                        {atRisk} at risk
-                      </span>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="rounded-2xl border overflow-x-auto" style={{ backgroundColor: '#faf8f4', borderColor: '#e0dbd2' }}>
+                <table className="w-full text-xs sm:text-sm min-w-[480px]">
+                  <thead>
+                    <tr className="text-[11px] sm:text-xs font-semibold uppercase tracking-wide" style={{ borderBottom: '1px solid #e0dbd2', color: '#8a8278' }}>
+                      <th className="text-left px-3 sm:px-5 py-3">Agent</th>
+                      <th className="text-left px-3 sm:px-5 py-3">Fields Assigned</th>
+                      <th className="text-left px-3 sm:px-5 py-3 hidden sm:table-cell">Active</th>
+                      <th className="text-left px-3 sm:px-5 py-3 hidden sm:table-cell">At Risk</th>
+                      <th className="text-left px-3 sm:px-5 py-3 hidden md:table-cell">Completed</th>
+                      <th className="px-3 sm:px-5 py-3" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {agents.map((agent) => {
+                      const agentFields  = fields.filter((f) => f.assignedTo === agent.id)
+                      const active       = agentFields.filter((f) => f.status === 'Active').length
+                      const atRisk       = agentFields.filter((f) => f.status === 'At Risk').length
+                      const completed    = agentFields.filter((f) => f.status === 'Completed').length
+                      return (
+                        <tr key={agent.id}
+                          className="transition cursor-pointer"
+                          style={{ borderBottom: '1px solid #f0ede6' }}
+                          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f0ede6'}
+                          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                          onClick={() => setSelectedAgent(agent)}
+                        >
+                          <td className="px-3 sm:px-5 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0"
+                                style={{ backgroundColor: '#2d4a1e', color: '#a8c97a' }}>
+                                {agent.username[0].toUpperCase()}
+                              </div>
+                              <span className="font-medium" style={{ color: '#1e3314' }}>{agent.username}</span>
+                            </div>
+                          </td>
+                          <td className="px-3 sm:px-5 py-3 font-semibold" style={{ color: '#3a5c28' }}>{agentFields.length}</td>
+                          <td className="px-3 sm:px-5 py-3 hidden sm:table-cell">
+                            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#e8f0e0', color: '#3a5c28' }}>{active}</span>
+                          </td>
+                          <td className="px-3 sm:px-5 py-3 hidden sm:table-cell">
+                            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: atRisk > 0 ? '#f5ede0' : '#f0ede6', color: atRisk > 0 ? '#7a4a1e' : '#8a8278' }}>{atRisk}</span>
+                          </td>
+                          <td className="px-3 sm:px-5 py-3 hidden md:table-cell">
+                            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#e8e4dc', color: '#5a5550' }}>{completed}</span>
+                          </td>
+                          <td className="px-3 sm:px-5 py-3">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setSelectedAgent(agent) }}
+                              className="text-xs font-medium px-3 py-1.5 rounded-lg transition cursor-pointer"
+                              style={{ border: '1px solid #5a8a3a', color: '#3a5c28' }}
+                              onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#3a5c28'; e.currentTarget.style.color = '#fff' }}
+                              onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#3a5c28' }}
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
       </div>
