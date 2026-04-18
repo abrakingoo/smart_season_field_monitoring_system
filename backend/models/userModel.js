@@ -22,11 +22,10 @@ const getAll = async () => {
 }
 
 const create = async ({ username, password, role = 'agent' }) => {
-  const id   = `u${Date.now()}`
   const hash = bcrypt.hashSync(password, 10)
   const { rows } = await pool.query(
-    'INSERT INTO users (id, username, password, role) VALUES ($1,$2,$3,$4) RETURNING id, username, role',
-    [id, username, hash, role]
+    `INSERT INTO users (username, password, role) VALUES ($1,$2,$3) RETURNING id, username, role`,
+    [username, hash, role]
   )
   return rows[0]
 }
