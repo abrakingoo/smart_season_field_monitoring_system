@@ -1,4 +1,6 @@
 # ShambaRecords — Smart Season Field Monitoring System
+<img width="1920" height="966" alt="Shamba_records_home" src="https://github.com/user-attachments/assets/cff95483-6909-4d67-b4f8-b85401596bcf" />
+
 
 A full-stack web application that helps coordinators and field agents track crop progress across multiple fields during a growing season.
 
@@ -6,8 +8,7 @@ A full-stack web application that helps coordinators and field agents track crop
 
 ## Live Demo
 
-- **Frontend:** https://smart-season-field-monitoring-syste-ruby.vercel.app
-- **Backend API:** https://smart-season-field-monitoring-syste-indol.vercel.app
+https://smart-season-field-monitoring-syste-ruby.vercel.app
 
 ### Demo Credentials
 
