@@ -3,6 +3,7 @@ import { AppProvider } from './context/AppContext'
 import LoginPage      from './pages/LoginPage'
 import Dashboard      from './pages/Dashboard'
 import AdminDashboard from './pages/AdminDashboard'
+import ErrorPage      from './pages/ErrorPage'
 
 function PrivateRoute({ children, role }) {
   if (!localStorage.getItem('auth')) return <Navigate to="/" replace />
@@ -18,6 +19,7 @@ export default function App() {
           <Route path="/" element={<LoginPage />} />
           <Route path="/dashboard" element={<PrivateRoute role="agent"><Dashboard /></PrivateRoute>} />
           <Route path="/admin"     element={<PrivateRoute role="admin"><AdminDashboard /></PrivateRoute>} />
+          <Route path="*"          element={<ErrorPage />} />
         </Routes>
       </BrowserRouter>
     </AppProvider>
